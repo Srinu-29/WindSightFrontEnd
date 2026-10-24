@@ -15,7 +15,7 @@ npm run dev
 Use `cp` in place of `Copy-Item` on macOS/Linux. Open http://localhost:5173.
 Run the WindSightBackend service at http://127.0.0.1:8000. The default Vite proxy forwards `/api` requests to it. Change `API_PROXY_TARGET` in `.env` if needed, then restart Vite. The dashboard displays connection status and supports retrying a failed health check.
 
-`src/components/` contains reusable layout and panels; `src/services/api.js` centralises backend requests. `src/App.jsx` is the desktop-focused dashboard shell. Tailwind uses its Vite plugin and `src/styles.css`. Recharts is installed for future charts; no sample market values are shown.
+`src/components/layout/` contains the layout, `src/components/dashboard/` contains dashboard panels, and `src/components/charts/` is reserved for future charts. `src/services/api.js` centralises backend requests. `src/pages/DashboardPage.jsx` contains the dashboard shell, rendered by `src/App.jsx`. Tailwind uses its Vite plugin and `src/styles.css`. Recharts is installed for future charts; no sample market values are shown.
 
 ## Build and preview
 
@@ -28,4 +28,4 @@ Preview opens at http://localhost:4173 and uses the same API proxy. A static pro
 
 ## Docker
 
-The Dockerfile builds static assets and serves them through Nginx. Its `/api` proxy expects a backend service named `backend` on port 8000 in the same Docker network. Use the parent workspace's `compose.yaml` to run both services at http://localhost:8080.
+The Dockerfile builds static assets and serves them through Nginx. Its `/api` proxy expects a backend service named `backend` on port 8000 in the same Docker network. Use the parent workspace's `docker-compose.yml` to run both services at http://localhost:8080.
