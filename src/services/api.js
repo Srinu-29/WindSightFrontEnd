@@ -57,26 +57,3 @@ export async function getForecastReplay(decisionDate, cutoffTime, signal) {
   return response.json();
 }
 
-/**
- * Fetches historical forecast accuracy metrics across a date range.
- *
- * @param {string} [startDate] - Start of purchasing decision date range (YYYY-MM-DD, defaults to 2026-01-01 on backend).
- * @param {string} [endDate] - End of purchasing decision date range (YYYY-MM-DD, defaults to 2026-01-31 on backend).
- * @param {string} [cutoffTime] - Optional cutoff time in Europe/London (HH:MM or HH:MM:SS, default 14:00).
- * @param {AbortSignal} [signal] - Optional AbortSignal to cancel the HTTP request.
- * @returns {Promise<object>} Historical accuracy summary metrics, daily breakdown, and settlement period profiles.
- * @throws {Error} If the HTTP request fails or the server returns an error response.
- */
-export async function getHistoricalAccuracy(startDate, endDate, cutoffTime, signal) {
-  const params = new URLSearchParams();
-  if (startDate) params.append('start_date', startDate);
-  if (endDate) params.append('end_date', endDate);
-  if (cutoffTime) params.append('cutoff_time', cutoffTime);
-  const response = await fetch(`${baseUrl}/historical-accuracy?${params.toString()}`, { signal });
-  if (!response.ok) {
-    const errorBody = await response.json().catch(() => ({}));
-    throw new Error(errorBody.detail?.message || errorBody.detail || `Failed to fetch historical accuracy (${response.status})`);
-  }
-  return response.json();
-}
-
