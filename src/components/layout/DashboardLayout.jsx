@@ -1,6 +1,11 @@
 import { Wind, LayoutDashboard } from 'lucide-react';
 
 export default function DashboardLayout({ children }) {
+  // children is the content placed inside <DashboardLayout>...</DashboardLayout>.
+  // This component supplies shared navigation and the main content container.
+  // On large screens, the grid has a 240px sidebar and a flexible content column.
+  // aria-current identifies the active page; decorative icons use aria-hidden
+  // so screen readers do not announce redundant labels.
   return <div className="min-h-screen lg:grid lg:grid-cols-[240px_1fr]">
     <aside className="flex flex-col bg-[#102d35] px-6 py-8 text-white">
       <div className="flex items-center gap-3 text-2xl font-semibold tracking-tight"><Wind className="text-teal-300" aria-hidden="true" />WindSight</div>

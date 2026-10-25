@@ -1,6 +1,9 @@
+/* Load Tailwind utilities used by className in JSX. Global rules below supply
+   the shared font, colours, page sizing, and keyboard-focus appearance. */
 @import "tailwindcss";
 
 :root { font-family: Inter, ui-sans-serif, system-ui, sans-serif; color: #172f38; background: #f3f6f7; font-synthesis: none; }
 body { margin: 0; min-width: 360px; }
 button { cursor: pointer; }
+/* A visible focus outline helps keyboard users see their selected control. */
 button:focus-visible, a:focus-visible { outline: 3px solid #14b8a6; outline-offset: 4px; }
