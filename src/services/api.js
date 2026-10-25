@@ -3,22 +3,80 @@
 // Vite (development) or Nginx (Docker) forwarding requests to FastAPI.
 // Strip a trailing slash to avoid joining /api/ and /health into /api//health.
 const baseUrl = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/$/, '');
-// const prevents reassigning this variable. || chooses the right value when the
-// left is falsy (including undefined or an empty string). /\/$/ is a regular
-// expression matching a slash at the end; replace removes that trailing slash.
 
+/**
+ * Checks the health status of the backend API service.
+ *
+ * @param {AbortSignal} [signal] - Optional AbortSignal to cancel the HTTP request.
+ * @returns {Promise<{ status: string, service?: string }>} The health check status response.
+ * @throws {Error} If the HTTP request fails or the status returned is not 'ok'.
+ */
 export async function getHealth(signal) {
-  // export lets other files import this function. async makes its result a Promise.
-  // await pauses this function until a Promise settles. A rejection throws here.
-  // `${baseUrl}` inserts a value into a template string; { signal } is shorthand
-  // for { signal: signal }. ! means "not", !== checks strict inequality, and
-  // throw passes an error to the caller instead of returning normal data.
-  // await waits without freezing the browser. signal allows the page to cancel
-  // the request. fetch does not throw for HTTP 404/500, so check response.ok too.
   const response = await fetch(`${baseUrl}/health`, { signal });
   if (!response.ok) throw new Error(`Health check failed (${response.status})`);
-  // Decode JSON and check the expected value before declaring the backend healthy.
   const data = await response.json();
   if (data.status !== 'ok') throw new Error('Unexpected health response');
   return data;
 }
+/**
+ * Fetches single-date forecast accuracy metrics and half-hourly comparison series.
+ *
+ * @param {string} decisionDate - Calendar date when the purchasing decision was made (YYYY-MM-DD).
+ * @param {string} [cutoffTime] - Optional cutoff time in Europe/London (HH:MM or HH:MM:SS, default 14:00).
+ * @param {AbortSignal} [signal] - Optional AbortSignal to cancel the HTTP request.
+ * @returns {Promise<object>} The single date accuracy report including overall metrics (MAE, RMSE, bias) and time series.
+ * @throws {Error} If the HTTP request fails or the server returns an error response.
+ */
+export async function getAccuracy(decisionDate, cutoffTime, signal) {
+  const params = new URLSearchParams({ decision_date: decisionDate });
+  if (cutoffTime) params.append('cutoff_time', cutoffTime);
+  const response = await fetch(`${baseUrl}/accuracy?${params.toString()}`, { signal });
+  if (!response.ok) {
+    const errorBody = await response.json().catch(() => ({}));
+    throw new Error(errorBody.detail?.message || errorBody.detail || `Failed to fetch accuracy (${response.status})`);
+  }
+  return response.json();
+}
+/**
+ * Replays electricity purchasing decisions and fetches forecast vs. actual generation data.
+ *
+ * @param {string} decisionDate - Calendar date when the purchasing decision was made (YYYY-MM-DD).
+ * @param {string} [cutoffTime] - Optional cutoff time in Europe/London (HH:MM or HH:MM:SS, default 14:00).
+ * @param {AbortSignal} [signal] - Optional AbortSignal to cancel the HTTP request.
+ * @returns {Promise<object>} The forecast replay data with settlement periods, selected forecasts, and actuals.
+ * @throws {Error} If the HTTP request fails or the server returns an error response.
+ */
+export async function getForecastReplay(decisionDate, cutoffTime, signal) {
+  const params = new URLSearchParams({ decision_date: decisionDate });
+  if (cutoffTime) params.append('cutoff_time', cutoffTime);
+  const response = await fetch(`${baseUrl}/forecast?${params.toString()}`, { signal });
+  if (!response.ok) {
+    const errorBody = await response.json().catch(() => ({}));
+    throw new Error(errorBody.detail?.message || errorBody.detail || `Failed to fetch forecast replay (${response.status})`);
+  }
+  return response.json();
+}
+
+/**
+ * Fetches historical forecast accuracy metrics across a date range.
+ *
+ * @param {string} [startDate] - Start of purchasing decision date range (YYYY-MM-DD, defaults to 2026-01-01 on backend).
+ * @param {string} [endDate] - End of purchasing decision date range (YYYY-MM-DD, defaults to 2026-01-31 on backend).
+ * @param {string} [cutoffTime] - Optional cutoff time in Europe/London (HH:MM or HH:MM:SS, default 14:00).
+ * @param {AbortSignal} [signal] - Optional AbortSignal to cancel the HTTP request.
+ * @returns {Promise<object>} Historical accuracy summary metrics, daily breakdown, and settlement period profiles.
+ * @throws {Error} If the HTTP request fails or the server returns an error response.
+ */
+export async function getHistoricalAccuracy(startDate, endDate, cutoffTime, signal) {
+  const params = new URLSearchParams();
+  if (startDate) params.append('start_date', startDate);
+  if (endDate) params.append('end_date', endDate);
+  if (cutoffTime) params.append('cutoff_time', cutoffTime);
+  const response = await fetch(`${baseUrl}/historical-accuracy?${params.toString()}`, { signal });
+  if (!response.ok) {
+    const errorBody = await response.json().catch(() => ({}));
+    throw new Error(errorBody.detail?.message || errorBody.detail || `Failed to fetch historical accuracy (${response.status})`);
+  }
+  return response.json();
+}
+
